@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Hola Challenge: Words</title>
+    <script src="../node_modules/highcharts/highcharts.js"></script>
+    <style>
+    body { font-family: "Helvetica Neue",Helvetica,Arial,sans-serif; font-size: 12px;}
+    #charts { text-align: center; }
+    #footer, #footer a { color: #ccc; font-size: 12px; text-align: right; margin-top: 2em; }
+    .links a { cursor: pointer; border-bottom: 1px dotted; height: 1em; display: inline-block; }
+    #txt-solution-info { margin-top: 1em; font-size: 1.5em; font-weight: normal; }
+    #txt-solution-info a { color: black; }
+    #txt-solution-desc { color: #ccc; }
+    .error { color: firebrick; }
+    </style>
+</head>
+<body style="height: 100%" id="body">
+    <div class="links">Top:
+        <a onclick="showTop('5747452a63905b3a11d97c13')" title="5747452a63905b3a11d97c13">#1:574..c13</a>
+        <a onclick="showTop('5748dc6363905b3a11d97d03')" title="5748dc6363905b3a11d97d03">#2:574..d03</a>
+        <a onclick="showTop('57483bab63905b3a11d97c5c')" title="57483bab63905b3a11d97c5c">#3:574..c5c</a>
+        <a onclick="showTop('57581ef1bb50d92eb4000001')" title="57581ef1bb50d92eb4000001">#3hc:575..001</a>
+        <a onclick="showTop('57487e6a63905b3a11d97c73')" title="57487e6a63905b3a11d97c73">#4:574..c73</a>
+        <a onclick="showTop('5745fc8163905b3a11d97be3')" title="5745fc8163905b3a11d97be3">#5:574..be3</a>
+        <a onclick="showTop('5748dc5763905b3a11d97d02')" title="5748dc5763905b3a11d97d02">#6:574..d02</a>
+        <a onclick="showTop('5748a0a363905b3a11d97c96')" title="5748a0a363905b3a11d97c96">#7:574..c96</a>
+        <a onclick="showTopOther()">enter other id</a>
+    </div>
+    <div class="links">Learning:
+        <a onclick="showLearning('57461bcb63905b3a11d97be7')" title="57461bcb63905b3a11d97be7">574..be7</a>
+        <a onclick="showLearning('5747c9f463905b3a11d97c3a')" title="5747c9f463905b3a11d97c3a">574..c3a</a>
+        <a onclick="showLearning('5748c99463905b3a11d97cdb')" title="5748c99463905b3a11d97cdb">574..cdb</a>
+        <a onclick="showLearning('5748dc5763905b3a11d97d02')" title="5748dc5763905b3a11d97d02">574..d02</a>
+        <a onclick="showLearning('5748cffe63905b3a11d97ce5')" title="5748cffe63905b3a11d97ce5">574..ce5</a>
+        <a onclick="showLearning('57407f40a6200f18777121d1')" title="57407f40a6200f18777121d1">574..1d1</a>
+        <a onclick="showLearning('57488d9763905b3a11d97c80')" title="57488d9763905b3a11d97c80">574..c80</a>
+        <a onclick="showLearning('5748d90363905b3a11d97cf5')" title="5748d90363905b3a11d97cf5">574..cf5</a>
+    </div>
+    <div class="links">Funny:
+        <a onclick="showTop('5720ebb893f2f29d3c9acbae')" title="5720ebb893f2f29d3c9acbae">true</a>
+        <a onclick="showTop('5720ebd293f2f29d3c9acbaf')" title="5720ebd293f2f29d3c9acbaf">false</a>
+        <a onclick="showTop('5720ed5393f2f29d3c9acbb0')" title="5720ed5393f2f29d3c9acbb0">random</a>
+    </div>
+    <h1 id="txt-solution-info">
+        <a id="link-solution-id" target="_blank"></a>
+        <span id="txt-solution-percent"></span>
+        <span id="txt-solution-desc"></span>
+    </h1>
+    <div id="charts">
+    </div>
+<script>
+    var urlRefPattern = 'https://github.com/hola/challenge_word_classifier/tree/master/submissions/{id}/src';
+
+    var urlPatternAll = 'https://cdn.rawgit.com/hola/challenge_word_classifier/master/res/{id}.json';
+    var urlPatternLearning = 'res-learning/{id}.json';
+    if (location.hostname === 'localhost') {
+        urlPatternAll = 'challenge_word_classifier-master/res/{id}.json';
+    }
+
+    var data;
+
+    showTop('5747452a63905b3a11d97c13');
+
+    function showTopOther() {
+        showData(prompt('Solution ID'));
+    }
+
+    function showTop(id) {
+        showData(id, urlPatternAll);
+    }
+
+    function showLearning(id) {
+        showData(id, urlPatternLearning);
+    }
+
+    function showData(solutionId, urlPattern) {
+        if (!solutionId) {
+            return;
+        }
+        document.getElementById('charts').innerHTML = 'Loading...';
+        document.getElementById('link-solution-id').innerHTML = solutionId;
+        document.getElementById('link-solution-id').setAttribute('href', urlRefPattern.replace('{id}', solutionId));
+        document.getElementById('txt-solution-percent').innerHTML = '';
+        document.getElementById('txt-solution-desc').innerHTML = '';
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', urlPattern.replace('{id}', solutionId));
+        xhr.responseType = 'json';
+        xhr.send();
+        xhr.addEventListener('load', function() {
+            document.getElementById('charts').innerHTML = xhr.response ? '' : 'No data';
+            if (xhr.response) {
+                window.data = data = xhr.response[0];
+                var last = data.final || data.intermediate[data.intermediate.length - 1];
+                if (last.dead) {
+                    document.getElementById('txt-solution-percent').innerHTML = ': <i class="error">died</i>';
+                    document.getElementById('txt-solution-desc').innerHTML =
+                        ' on ' + Math.round(data.intermediate[data.intermediate.length - 1].total.total / 1000000) + 'M words';
+                } else {
+                    document.getElementById('txt-solution-percent').innerHTML =
+                        ': ' + last.total.right_rate.toFixed(2) + '%';
+                    document.getElementById('txt-solution-desc').innerHTML =
+                        ' on ' + Math.round(last.total.total / 1000000) + 'M words';
+                }
+                document.getElementById('charts').innerHTML = '';
+                drawCharts();
+            }
+        });
+    }
+
+    function drawCharts() {
+        drawDistributionChart();
+        drawAvgMAvgChart('ch-total', 'Total', function(value) { return value.total; });
+        drawAvgMAvgChart('ch-words', 'Words', function(value) { return value.words; });
+        drawAvgMAvgChart('ch-nonwords', 'Non-Words', function(value) { return value.nonwords; });
+        drawNonWordsChart();
+    }
+
+    function drawDistributionChart() {
+        addChart('ch-dist');
+        var last = data.final && !data.final.dead ? data.final : data.intermediate[data.intermediate.length - 1];
+        var chart = new Highcharts.Chart({
+            chart: {
+                type: 'column',
+                renderTo: 'ch-dist',
+                height: 300,
+                zoomType: 'xy'
+            },
+            title: {
+                text: 'Distribution'
+            },
+            xAxis: {
+                categories: ['Words', 'Non-Words', 'NW[0]', 'NW[1]', 'NW[2]', 'NW[3]',
+                    'NW[4]', 'NW[5]', 'NW[6]', 'NW[7]', 'NW[8]']
+            },
+            yAxis: {
+                title: { text: 'quantity' },
+                min: 0,
+                stackLabels: {
+                    enabled: true,
+                    style: { color: 'gray' },
+                    formatter: function() {
+                        var right = this.axis.series[0].yData[this.x] * 100;
+                        var total = this.total * 100;
+                        return right.toFixed(0) + '/' + total.toFixed(0) +
+                            ': ' + (right / total * 100).toFixed(0) + '%';
+                    }
+                }
+            },
+            plotOptions: {
+                column: {
+                    stacking: 'normal',
+                    dataLabels: { enabled: false },
+                    pointPadding: 0,
+                    borderWidth: 0
+                }
+            },
+            series: [{
+                name: 'Right',
+                data: [
+                    last.words.right / last.total.total,
+                    last.nonwords.right / last.total.total,
+                    last.nonwords_by_model[0].right / last.total.total,
+                    last.nonwords_by_model[1].right / last.total.total,
+                    last.nonwords_by_model[2].right / last.total.total,
+                    last.nonwords_by_model[3].right / last.total.total,
+                    last.nonwords_by_model[4].right / last.total.total,
+                    last.nonwords_by_model[5].right / last.total.total,
+                    last.nonwords_by_model[6].right / last.total.total,
+                    last.nonwords_by_model[7].right / last.total.total,
+                    last.nonwords_by_model[8].right / last.total.total,
+                ]
+            }, {
+                name: 'Wrong',
+                data: [
+                    last.words.wrong / last.total.total,
+                    last.nonwords.wrong / last.total.total,
+                    last.nonwords_by_model[0].wrong / last.total.total,
+                    last.nonwords_by_model[1].wrong / last.total.total,
+                    last.nonwords_by_model[2].wrong / last.total.total,
+                    last.nonwords_by_model[3].wrong / last.total.total,
+                    last.nonwords_by_model[4].wrong / last.total.total,
+                    last.nonwords_by_model[5].wrong / last.total.total,
+                    last.nonwords_by_model[6].wrong / last.total.total,
+                    last.nonwords_by_model[7].wrong / last.total.total,
+                    last.nonwords_by_model[8].wrong / last.total.total,
+                ]
+            }]
+        });
+    }
+
+    function drawAvgMAvgChart(id, title, sel) {
+        addChart(id);
+
+        var avg = [];
+        var mAvg = [];
+
+        var measurements = data.intermediate;
+        if (data.final && !data.final.dead) {
+            measurements = measurements.concat([data.final]);
+        }
+        var prevMeasurement = null;
+        measurements.forEach(function(measurement, i) {
+            avg.push(sel(measurement).right_rate);
+            mAvg.push((sel(measurement).right - (prevMeasurement ? sel(prevMeasurement).right : 0)) /
+                (sel(measurement).total - (prevMeasurement ? sel(prevMeasurement).total : 0)) * 100);
+            prevMeasurement = measurement;
+        });
+
+        var colors = Highcharts.getOptions().colors;
+        var chart = new Highcharts.Chart({
+            chart: {
+                animation: false,
+                renderTo: id,
+                height: 600,
+                zoomType: 'xy'
+            },
+            title: {
+                text: title
+            },
+            tooltip: {
+                shared: true
+            },
+            xAxis: [{
+                title: { text: 'words x' + data.intermediate[0].total.total / 1000 + ' 000' }
+            }],
+            yAxis: {
+                title: { text: 'right percent' },
+                labels: { format: '{value:.2f}' },
+                minorGridLineDashStyle: 'dot',
+                minorTickInterval: .05
+            },
+            plotOptions: {
+                series: {
+                    states: { hover: { enabled: false } }
+                }
+            },
+            series: [{
+                name: 'Moving Average',
+                type: 'spline',
+                color: colors[3],
+                data: mAvg,
+                marker: { enabled: false }
+            }, {
+                name: 'Total Average',
+                type: 'spline',
+                color: colors[0],
+                data: avg
+            }]
+        });
+    }
+
+    function drawNonWordsChart() {
+        addChart('ch-nonwords-detailed');
+
+        var modelCount = 9;
+        var mAvg = [];
+        for (var i = 0; i < modelCount; i++) {
+            mAvg.push([]);
+        }
+
+        var measurements = data.intermediate;
+        if (data.final && !data.final.dead) {
+            measurements = measurements.concat([data.final]);
+        }
+        var prev = null;
+        measurements.forEach(function(measurement, i) {
+            var nw = measurement.nonwords_by_model;
+            for (var i = 0; i < modelCount; i++) {
+                mAvg[i].push((nw[i].right - (prev ? prev[i].right : 0)) /
+                    (nw[i].total - (prev ? prev[i].total : 0)) / modelCount);
+            }
+            prev = nw;
+        });
+
+        var chart = new Highcharts.Chart({
+            chart: {
+                animation: false,
+                renderTo: 'ch-nonwords-detailed',
+                height: 600,
+                zoomType: 'xy'
+            },
+            title: {
+                text: 'Non-Words by Model'
+            },
+            tooltip: {
+                shared: true
+            },
+            xAxis: [{
+                title: { text: 'words x' + data.intermediate[0].total.total / 1000 + ' 000' }
+            }],
+            yAxis: {
+                title: { text: 'right percent' },
+                labels: { format: '{value:.2f}' },
+                minorGridLineDashStyle: 'dot',
+                minorTickInterval: .05
+            },
+            plotOptions: {
+                series: {
+                    states: { hover: { enabled: false } },
+                    stacking: 'normal'
+                }
+            },
+            series: mAvg.map(function(mAvgSerie, ix) {
+                return {
+                    name: 'NW[' + ix + ']',
+                    type: 'areaspline',
+                    data: mAvgSerie,
+                    marker: { enabled: false }
+                };
+            }).reverse()
+        });
+    }
+
+    function addChart(id) {
+        var el = document.createElement('div');
+        el.id = id;
+        document.getElementById('charts').appendChild(el);
+    }
+</script>
+<div id="footer">Made by <a href="https://github.com/antelle" target="_blank">Antelle</a>,
+    charts by <a href="http://www.highcharts.com/" target="_blank">Highcharts</a>
+    licensed under <a href="http://creativecommons.org/licenses/by-nc/3.0/" target="_blank">CC BY-NC 3.0</a></div>
+</body>
+</html>
